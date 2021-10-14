@@ -1,0 +1,39 @@
+# jenkins_base image (see cloudscan-compose.yml for more complete solution and use this for testing or one-off setups)
+BUILD="docker build -t chunt/private:jenkins_base --no-cache ."
+RUN="docker run --name jenkins-test --network=my-network --ip 172.18.0.4 --hostname=ssc.fortify.com:172.18.0.3 -p 80:8080 -p 5000:5000 -p 4243:4243 -d chunt/private:jenkins_base"
+
+#jenkins-sca-agent
+BUILD="docker build --tag chunt/private:sca18.20-jenkins-agent --add-host=ssc.fortify.com:172.18.0.3 --add-host=jenkins.fortify.com:172.18.0.4 --add-host=controller.fortify.com:172.18.0.6 --build-arg fortifyLicense=artifacts/fortify.license --build-arg scaRun=artifacts/Fortify_SCA_and_Apps_18.20_linux_x64.run --build-arg scaOptions=artifacts/sca.options --no-cache -f sca-jenkins-agent ."
+
+RUN="docker run --name sca-jenkins-agent --hostname=sca-agent.fortify.com --network=my-network --ip 172.18.0.20 -d chunt/private:sca18.20-jenkins-agent -url http://jenkins.fortify.com:8080 -workDir=/home/jenkins/agent b84bd6c6e3fbab4fe2f01c1e4d98af95c90ecdd12eeb0ba0b9c17042f2930a1e sca-agent"
+
+# better mounts with this one (need jenkins to update their dockerfile to simplify this to just /home/jenkins):
+RUN="docker run --name sca-jenkins-agent --hostname=jenkins-agent.fortify.com --network=my-network --ip 172.18.0.20 --mount type=volume,src=sca-jenkins-agent,dst=/home/jenkins --mount type=bind,src=/mnt/docker/volumes/sca-jenkins-agent/_data/agent,dst=/home/jenkins/agent --mount type=bind,src=/mnt/docker/volumes/sca-jenkins-agent/_data/.jenkins,dst=/home/jenkins/.jenkins -d chunt/private:sca18.20-jenkins-agent -url http://jenkins.fortify.com:8080 -workDir=/home/jenkins/agent b84bd6c6e3fbab4fe2f01c1e4d98af95c90ecdd12eeb0ba0b9c17042f2930a1e sca-agent
+
+# make backup of sca-jenkins-agent volume (create tar.gz of sca-jenkins-agent docker volume)
+docker start sca-jenkins-agent
+docker run --rm --volumes-from sca-jenkins-agent --mount type=volume,src=sca-jenkins-agent,dst=/sca-jenkins-agent --mount type=bind,src=/home/chunt/git/fortify/presales-distro/jenkins,dst=/opt ubuntu tar -zcvf /opt/sca-jenkins-agent_volume.tar.gz /sca-jenkins-agent/
+
+# restore volume from backup (tar.gz)
+docker volume create sca-jenkins-agent
+docker run --rm --mount type=volume,src=sca-jenkins-agent,dst=/sca-jenkins-agent --mount type=bind,src=/home/chunt/git/fortify/presales-distro/jenkins,dst=/tmp ubuntu bash -c "cd /sca-jenkins-agent && tar -zxvf /tmp/sca-jenkins-agent_volume.tar.gz --strip 1"
+
+# manual load home into sca-jenkins-agent, one-time only coming from bind to volume mounts (-v to --mount) or from 2 volumes in jenkins:xxxx Dockerfile
+# expected that your agent's home (/home/jenkins) is the contents of test-jenkins-agent.tar.gz
+docker volume create test-jenkins
+docker run --name test-agent --hostname=jenkins-agent.fortify.com --network=my-network --ip 172.18.0.29 --mount type=volume,src=sca-jenkins-agent,dst=/home/jenkins --mount type=bind,src=/mnt/docker/volumes/sca-jenkins-agent/_data/agent,dst=/home/jenkins/agent --mount type=bind,src=/mnt/docker/volumes/sca-jenkins-agent/_data/.jenkins,dst=/home/jenkins/.jenkins -d chunt/private:sca18.20-jenkins-agent -url http://jenkins.fortify.com:8080 -workDir=/home/jenkins/agent b84bd6c6e3fbab4fe2f01c1e4d98af95c90ecdd12eeb0ba0b9c17042f2930a1e sca-agent
+# then 
+docker start test-agent
+docker cp test-jenkins-agent.tar.gz test-agent:/home/
+docker exec -it -u root test-agent /bin/bash
+mkdir tmp_home
+cd tmp_home
+tar -zxvf ../test-jenkins-agent.tar.gz --strip 1
+cp -r tmp_home/.m2/ jenkins/
+cp -r tmp_home/agent/ jenkins/
+cp -r tmp_home/.fortify/ jenkins/
+cp -r tmp_home/.jenkins/ jenkins/
+chown -R jenkins:jenkins jenkins/
+exit
+# at this point, test-agent should run like sca-jenkins-agent would (from the --mount volume)
+# run eightball-maven build and it should pass if you have ssc running...else, will check workspace (mvn goals) and sca maven plugin (sca:clean, sca:translate, sca:scan), then will fail when trying to reach ssc

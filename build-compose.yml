@@ -1,0 +1,89 @@
+version: "3.2"
+services:
+  sc_client:
+    build:
+      context: ./scclient
+      dockerfile: Dockerfile
+    image: chunt/scancentral:${TAG}-client
+    container_name: sc-client
+    extra_hosts:
+      - "controller.fortify.com:${controllerIP}"
+    networks:
+      fortify:
+        aliases:
+          - sc-client
+  jenkins:
+    build:
+      context: ./jenkins
+      dockerfile: Dockerfile
+    image: jenkins/jenkins:lts
+    container_name: ${jenkinsName}
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+      - "4243:4243"
+    networks:
+       fortify:
+         ipv4_address: ${jenkinsIP}
+         aliases:
+           - jenkins.fortify.com
+           - jenkins
+    extra_hosts:
+      - "ssc.fortify.com:${sscIP}"
+      - "controller.fortify.com:${controllerIP}"
+      - "sca-agent.fortify.com:${scaJenkinsAgentIP}"
+    volumes:
+      - type: "volume"
+        source: "${jenkinsHome}"
+        target: "/var/jenkins_home"
+  sca_jenkins_agent:
+    build:
+      context: ./sca
+      dockerfile: sca-jenkins-agent
+      args:
+        - fortifyLicense=${scaLicensePath}
+        - scaOptions=${scaOptionsPath}
+        - scaRun=${scaRunPath}
+    image: chunt/private:sca${TAG}-jenkins-agent
+    container_name: ${scaJenkinsAgentName}
+    entrypoint:
+      - jenkins-slave
+      - -workDir=${scaJenkinsAgentWorkingDir}
+      - -url
+      - ${scaJenkinsAgentMasterUrl}
+      - ${scaJenkinsAgentSecret}
+      - ${scaJenkinsAgentLabel}
+    depends_on:
+      - jenkins
+    networks:
+       fortify:
+         ipv4_address: ${scaJenkinsAgentIP}
+         aliases:
+           - sca-agent.fortify.com
+    extra_hosts:
+      - "jenkins.fortify.com:${jenkinsIP}"
+      - "ssc.fortify.com:${sscIP}"
+      - "controller.fortify.com:${controllerIP}"
+    volumes:
+      - type: "volume"
+        source: ${scaJenkinsAgentHome}
+        target: /home/jenkins
+      - type: "bind"
+        source: ${scaJenkinsAgentHomeDir}/agent
+        target: /home/jenkins/agent
+      - type: "bind"
+        source: ${scaJenkinsAgentHomeDir}/.jenkins
+        target: /home/jenkins/.jenkins
+
+
+networks:
+    fortify:
+        external:
+          name: ${networkName}
+volumes:
+    jenkins:
+        external:
+          name: ${jenkinsHome}
+    sca-jenkins-agent:
+        external:
+          name: ${scaJenkinsAgentHome}

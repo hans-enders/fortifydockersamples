@@ -1,0 +1,2 @@
+BUILD="docker build -t chunt/private:controller18.20 --no-cache ."
+RUN="docker run --name controller --network=my-network --ip 172.18.0.6 -p 8081:8080 -d chunt/private:controller18.20"

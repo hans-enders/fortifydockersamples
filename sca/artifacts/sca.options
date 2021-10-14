@@ -1,0 +1,3 @@
+fortify_license_path=/tmp/fortify.license
+installdir=/opt/app/fortify
+InstallSamples=0

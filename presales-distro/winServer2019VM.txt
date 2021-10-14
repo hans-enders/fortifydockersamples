@@ -1,0 +1,48 @@
+windows server 2019 key: CB2T4-2NYG6-YQDB2-KXQ8J-D9QFH
+#######################################
+# Windows Server 2019 VM
+en_windows_server_2019_updated_nov_2020_x64_dvd_8600b05f.iso
+
+# basic things to do
+enable network sharing if in a vm
+pin powershell and cmd prompt to taskbar
+update hosts file to fortify1 (linux vm)
+	<ipAddress> fortify1
+add firefox browser
+	https://download.mozilla.org/?product=firefox-devedition-msi-latest-ssl&os=win64&lang=en-US
+	Firefox Setup 84.0b6.msi
+
+# open powershell as admin and enable docker enterprise
+Install-WindowsFeature -Name Containers
+Install-Module DockerMsftProvider -Force
+Install-Package Docker -ProviderName DockerMsftProvider -Force
+Restart-Computer
+
+# open cmd prompt as admin, pull dast images
+docker login
+docker pull fortifydocker/lim
+docker pull fortifydocker/webinspect
+docker pull fortifydocker/scancentral-dast-api
+docker pull fortifydocker/scancentral-dast-globalservice
+
+copy DAST config tool to server 2019 host -> "DAST Config Tool Setup 20.2.307.exe"
+
+copy Sql Server 2019 setup to server 2019 host -> "SQL2019-SSEI-Dev.exe" 
+install Sql Server 2019
+install Sql Server Manager
+	start "" /w %userprofile%\Downloads\SSMS-Setup-ENU.exe /Quiet SSMSInstallRoot="C:\SQLssms"
+	# (optional) install powershell ssms module
+		Install-Module -Name SqlServer
+enable TCP/IP in Sql Server 2019 Configuration Manager
+	-> SQL Server Network Configuration
+	-> Protocols for <sqlservername>
+	-> TCP/IP set Enabled
+mkdir c:\lim
+	drop in lim.env file
+
+updated scripts
+Set-ExecutionPolicy Unrestricted
+#######################################
+
+
+docker network create -d "transparent" --subnet 10.244.0.0/24 --gateway 10.244.0.1 -o com.docker.network.windowsshim.vlanid=7 -o com.docker.network.windowsshim.dnsservers="10.244.0.7" fortify

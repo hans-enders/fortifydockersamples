@@ -1,0 +1,9 @@
+docker run --rm --volumes-from nexus-iq-server -v $(pwd):/backup ubuntu tar -zcvf /backup/sonatype-work.tar 
+
+
+
+# make tar.gz backup of jenkins(-docker) volume 
+docker run --rm --volumes-from jenkins-test --mount type=volume,src=jenkins-docker,dst=/jenkins --mount type=bind,src=/home/chunt/git/fortify/jenkins/artifacts,dst=/opt ubuntu bash -c "cd /jenkins && tar -zcvf /opt/jenkins_docker_volume.tar.gz /jenkins"
+
+# extracting jenkins docker volume from zip into docker volume
+docker run --rm --volumes-from jenkins-docker --mount type=volume,src=jenkins-docker,dst=/jenkins --mount type=bind,src=/home/chunt/git/fortify/jenkins/artifacts,dst=/tmp ubuntu bash -c "cd /jenkins && tar -zxvf /tmp/jenkins/jenkins_docker_volume.tar.gz --strip 1"

@@ -1,0 +1,33 @@
+FROM openjdk:8u181-jdk
+LABEL maintainer="chunt" description="Fortify static code analyzer (SCA)"
+
+USER root
+
+RUN mkdir -p ~/.fortify && \
+	mkdir /work
+
+# SCA run file for linux 64 bit (@see $scaVersion)
+ARG scaRun
+# option file for SCA (@see product documentation or default @https://github.com/fortify)
+ARG scaOptions
+
+ENV WORK_HOME=/work
+ARG FORTIFY_HOME=~/.fortify
+
+ARG scaVersion=Fortify_SCA_and_Apps_18.20_linux_x64.run
+
+ADD $scaRun /tmp/
+ADD $scaOptions /tmp/
+
+ENV JAVA_OPTS="$JAVA_OPTS -Dfortify.home=$FORTIFY_HOME"
+
+# for default installer
+RUN mkdir -p /opt/app/fortify
+
+# TODO: chunt: this needs an offline rules support as well
+RUN cd /tmp/ && \
+	chmod +x /tmp/$scaVersion
+	
+ENV PATH="${PATH}:/opt/app/fortify/bin"
+
+CMD ["/bin/bash"]

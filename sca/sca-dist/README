@@ -1,0 +1,1 @@
+chunt: This is only for testing different docker distribution methods of sca images. These are HUGE images (like 2-4GB) and take forever to build/pull/push! More investigation into reducing size and layers would be ideal. 

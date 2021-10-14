@@ -1,0 +1,2 @@
+docker build -t chunt/tools:20.1.0-scclient --build-arg clientToken=client-auth-token .
+docker run --rm --network=fortify --add-host="controller:172.18.0.6" --mount type=bind,src=/home/chunt/git/eightball,dst=/opt/src -it chunt/tools:20.1.0-scclient scancentral -url http://controller:8080/scancentral-ctrl start -bt mvn

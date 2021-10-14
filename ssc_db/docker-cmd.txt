@@ -1,0 +1,46 @@
+###KUBERNETES DOCKER SUPPORT###
+# Builds a mysql db for ssc to connect to with default/recommended settings [--demo,--non-prod]
+@see also ../build.py --build-ssc-db
+
+# run connect to existing docker volume (ssc-db)
+@see also ../build.py --run-ssc-db
+docker run --name ssc-db \
+	--env MYSQL_DATABASE=ssc_db \
+	--env MYSQL_USER=ssc_db \
+	--env MYSQL_PASSWORD=F0rt1fy! \
+	--env MYSQL_ROOT_PASSWORD=F0rt1fy! \
+	--mount type=volume,src=ssc-db,dst=/var/lib/mysql \
+	-d chunt/ssc-db:20.1.0
+
+# back up ssc database from docker volume with container that is connected to it
+# stop container but dont remove it
+docker run --rm --volumes-from ssc-db \
+	--mount type=volume,src=ssc-db,dst=/var/lib/mysql \
+	--mount type=bind,src=C:\Users\huntch\Desktop\test,dst=/opt \
+	ubuntu bash -c "cd /var/lib/mysql && tar -zcvf /opt/ssc-db.tar.gz /var/lib/mysql"
+
+# populate ssc-db from backup
+docker run --rm \
+	--mount type=volume,src=ssc-db,dst=/var/lib/mysql \
+	--mount type=bind,src=c:\Users\huntch\Desktop\test,dst=/tmp \
+	ubuntu bash -c "cd /var/lib/mysql && tar -zxvf /tmp/ssc-db.tar.gz --strip 1"
+
+# back up ssc database from docker volume without a running container
+TODO
+
+# Restore samples (jenkins and sca-jenkins-agent...)
+docker run --rm \
+	--mount type=volume,src=sca-jenkins-agent,dst=/sca-jenkins-agent \
+	--mount type=bind,src=${dataDir}/jenkins,dst=/tmp \
+	ubuntu bash -c "cd /sca-jenkins-agent && tar -zxvf /tmp/sca-jenkins-agent_volume.tar.gz --strip 1"
+
+docker run --rm \
+	--mount type=volume,src=jenkins,dst=/jenkins \
+	--mount type=bind,src=${dataDir}/jenkins,dst=/tmp \
+	ubuntu bash -c "cd /jenkins && tar -zxvf /tmp/jenkins_volume.tar.gz --strip 1"
+
+###LOCAL DOCKER ONLY###
+docker run --name test-sscdb \
+	--network=fortify --ip 172.18.0.2 \
+	--mount type=volume,src=ssc-db,dst=/var/lib/mysql \
+	-d chunt/ssc-db:20.1.0

@@ -1,0 +1,32 @@
+FROM openjdk:8u181-jdk
+LABEL maintainer="chunt" description="Fortify static code analyzer (SCA)"
+
+USER root
+
+RUN mkdir -p /fortify/results && \
+	mkdir -p /opt/app/fortify
+
+ARG artifactsDir=artifacts
+# SCA run file for linux 64 bit
+ARG scaRun
+
+ADD $artifactsDir/fortify.license /tmp/
+ADD $artifactsDir/$scaRun /tmp/
+ADD $artifactsDir/sca.options /tmp/
+
+# chunt: sleep is there for an issue in docker related to "Text file busy" and using chmod
+# TODO: chunt: this needs an offline rules support as well
+RUN cd /tmp/ && \
+	chmod +x /tmp/$scaRun && \
+	sleep 1 && \
+	./$scaRun --mode unattended --optionfile /tmp/sca.options
+	
+ENV PATH="${PATH}:/opt/app/fortify/bin"
+
+RUN fortifyupdate && \
+	sourceanalyzer --version && \
+	rm /tmp/fortify.license && \
+	rm /opt/app/fortify/fortify.license && \
+	rm /tmp/$scaRun
+
+CMD ["/bin/bash"]

@@ -1,0 +1,81 @@
+version: "3.2"
+services:
+  ssc_db_mysql_config:
+    build:
+       context: ./ssc_db
+       dockerfile: Dockerfile
+       args:
+          - config=${sscdbConfigFile}
+    image: chunt/private:ssc-db-${TAG}-mysql
+  ssc_db_mysql_fr:
+    build:
+       context: ./ssc_db
+       dockerfile: first-run-Dockerfile
+       args:
+          - sql=${sscdbSqlFile}
+    image: chunt/private:ssc-db-${TAG}
+    container_name: ${sscdbName}
+    ports:
+      - "3306:3306"
+    networks:
+       fortify:
+         ipv4_address: ${sscdbIP}
+         aliases:
+            - sscdb.fortify.com
+    environment:
+      - MYSQL_DATABASE=${sscdb}
+      - MYSQL_USER=${sscdbUser}
+      - MYSQL_PASSWORD=${sscdbPw}
+      - MYSQL_ROOT_PASSWORD=${sscdbRootPw}
+    volumes:
+      - type: "volume"
+        source: ${sscdbData}
+        target: "/var/lib/mysql"
+  ssc_db_mysql:
+    image: chunt/private:ssc-db-${TAG}-mysql
+    container_name: ${sscdbName}
+    ports:
+      - "3306:3306"
+    networks:
+       fortify:
+         ipv4_address: ${sscdbIP}
+         aliases:
+            - sscdb.fortify.com
+    environment:
+      - MYSQL_DATABASE=${sscdb}
+      - MYSQL_USER=${sscdbUser}
+      - MYSQL_PASSWORD=${sscdbPw}
+      - MYSQL_ROOT_PASSWORD=${sscdbRootPw}
+    volumes:
+      - type: "volume"
+        source: ${sscdbData}
+        target: "/var/lib/mysql"
+  ssc_web_internal:
+    build:
+      context: ./ssc
+      dockerfile: Dockerfile
+    image: chunt/private:ssc-web-${TAG}-internal
+    container_name: ${sscName}
+    ports:
+      - "80:8080"
+    extra_hosts:
+      - "sscdb.fortify.com:${sscdbIP}"
+      - "jenkins.fortify.com:${jenkinsIP}"
+      - "controller.fortify.com:${controllerIP}"
+    depends_on:
+      - ssc_db_mysql
+    networks:
+       fortify:
+         ipv4_address: ${sscIP}
+         aliases:
+            - ssc.fortify.com
+
+networks:
+    fortify:
+        external:
+          name: ${networkName}
+
+volumes:
+    sscdb:
+        external:
+          name: ${sscdbData}

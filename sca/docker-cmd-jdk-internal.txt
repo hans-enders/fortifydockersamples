@@ -1,0 +1,13 @@
+BUILD="docker build -t chunt/sca:20.1.2-internal --no-cache --build-arg scaRun=Fortify_SCA_and_Apps_20.1.2_linux_x64.run -f sca-jdk-internal ."
+
+BUILD="docker build -t chunt/private:sca19.1.0_RC-jdk-internal --no-cache --build-arg scaRun=Fortify_SCA_and_Apps_19.1.0_linux_x64.run -f sca-jdk-internal ."
+RUN="docker run --name sca-jdk-internal -dit chunt/private:sca19.1.0_RC-jdk-internal"
+
+# extension of sca-jdk-internal
+from chunt/private:sca19.1.0_RC-jdk-internal
+# TODO map to build environment tools?
+
+
+# 18.20
+BUILD="docker build -t chunt/private:sca18.20-jdk-internal --no-cache --build-arg fortifyLicense=artifacts/fortify.license --build-arg scaRun=artifacts/Fortify_SCA_and_Apps_18.20_linux_x64.run --build-arg scaOptions=artifacts/sca.options -f sca-jdk-internal ."
+RUN="docker run --name sca-jdk-internal -dit chunt/private:sca18.20-jdk-internal"

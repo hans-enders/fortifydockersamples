@@ -1,0 +1,103 @@
+#######################################
+# centos 7
+set root user password
+create a user (fortify) with administrative privileges (wheel)
+update timezone
+update network to automatically connect
+	1) enable networking interface-- only if not set initially during install - you will get dns errors when trying to run yum
+		nmtui-edit 
+
+# su - (as root) from windows terminal ssh'ed into virtual machine then you can copy/paste the below command(s), individual below
+1) yum update -y && yum install -y git vim wget curl net-tools lsof bash-completion yum-utils python3 && yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo && yum install -y docker-ce docker-ce-cli containerd.io && systemctl start docker && usermod -aG docker chunt && systemctl enable docker 
+	does : 
+		yum update -y
+		yum install -y git vim wget curl net-tools lsof bash-completion yum-utils python3
+		6) install docker
+			yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+			yum install -y docker-ce docker-ce-cli containerd.io
+			systemctl start docker
+			usermod -aG docker $USER (fortify)
+			systemctl enable docker
+
+2) logout and log back in
+-sanity check-
+as <user> (not root)
+docker ps -a
+	should not throw any errors
+-end sanity check-
+
+# script from here?
+3)	mkdir -p ~/git
+	cd ~/git
+	git clone https://github.com/therealchunt/fortify
+	cd fortify
+	docker login
+	create docker volumes
+		docker volume create ssc-db
+		docker volume create jenkins
+		docker volume create sca-jenkins-agent
+	python3 fortifyEnv.py --setup
+
+6) install docker
+		yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+		yum install -y docker-ce docker-ce-cli containerd.io
+		systemctl start docker
+		usermod -aG docker $USER (fortify)
+		systemctl enable docker
+6.a) install docker-compose
+	curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+	chmod +x /usr/local/bin/docker-compose
+7) disable postfix
+	systemctl stop postfix
+	systemctl disable postfix
+	yum remove -y postfix
+8) update docker-compose props
+	cd ~/git/fortify
+	cp sample.env .env
+	# update the following...
+	
+
+#### did not run these
+6) add fortify1 and fortify2 to hosts, as appropriate
+	(as root) - echo -e "192.168.239.131 fortify1\n192.168.239.129 fortify2" >> /etc/hosts
+	or manually
+		vim /etc/hosts 
+		add to end of file:
+			<ipAddress> fortify1
+			<ipAddress> fortify2
+	:wq
+8) ssh pubkey auth
+	ssh-keygen -t RSA
+9) run key-gen as (fortify) user also
+10) aliases (l, di, drmi, dps) in .bashrc
+	echo -e "alias l='ls -l'\nalias di='docker images --format \"{{.Repository}}:{{.Tag}}\"'\nalias drmi='docker image prune --filter \"dangling=true\"'\nalias dps='docker ps --format {{.Names}}'" >> .bashrc
+11) pull images
+	docker pull fortifydocker/ssc-webapp:20.2.0.0149
+	docker pull chunt/ssc-db:latest
+	docker pull mcr.microsoft.com/mssql/server:2017-latest
+12) create volumes
+13) create docker swarm
+	docker swarm init
+	on windows (in admin cmd prompt) docker swarm join --token SWMTKN-1-3ofc1k7wmxp6q8xsb7gbhngjj20qs89rm2ka0mvxblpb3euvgs-bqma6p8xjkozrfqccc8kdtvmu 192.168.239.132:2377
+####
+
+sscdb
+docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=F0rt1fy!" \
+-p 1433:1433 --name sscdb -h sscdb \
+-d mcr.microsoft.com/mssql/server:2019-latest
+#######################################
+
+for jimmy:
+	ssc docker image is not published to latest tag, only 20.2.0.0149
+	[chunt@fortify1 ~]$ docker pull fortifydocker/ssc-webapp
+						Using default tag: latest
+						Error response from daemon: manifest for fortifydocker/ssc-webapp:latest not found: manifest unknown: manifest unknown
+	[chunt@fortify1 ~]$ docker pull fortifydocker/ssc-webapp:20.2.0.0149
+	
+	ssc.autoconfig:
+	Unable to find property 'dbmigrationProperties' on class: com.fortify.ssc.config
+	.AutoConfig
+	in 'reader', line 9, column 3:
+		migration.enabled: true
+		
+	ssc edast url change, open webdevtools->network, then navigate to scancentral->dast, url is old url in configuration until F5 on page

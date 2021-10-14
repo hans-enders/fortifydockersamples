@@ -1,0 +1,7 @@
+FROM chunt/private:sca18.20-jdk-internal 
+LABEL maintainer="chunt" description="testing as a sensor for cloudscan"
+
+ADD artifacts/worker.properties /opt/app/fortify/Core/config/
+
+#ENTRYPOINT cloudscan -url http://controller.fortify.com:8080/cloud-ctrl worker
+ENTRYPOINT ["cloudscan"]

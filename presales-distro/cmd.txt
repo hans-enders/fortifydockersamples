@@ -1,0 +1,2 @@
+# build presales docker environment software distribution
+tar --exclude=README* --exclude=.gitignore -zcvf fortify-presales.tar.gz jenkins/ sca/ sscdb/ sonatype/ -C ../centos_base/artifacts/ fortify.sh fortifySetup.sh

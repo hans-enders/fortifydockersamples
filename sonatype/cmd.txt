@@ -1,0 +1,26 @@
+# json file mapping iq-server apps to ssc apps
+docker build --tag chunt/private:sis20.1.20200914 --no-cache -f integrationservice.Dockerfile .
+
+docker run --name nexus-integration-service --network=fortify --hostname nexus-integration-service --add-host ssc-web:172.18.0.3 --add-host nexus-iq-server:172.18.0.8 -d chunt/private:sis20.1.20200914
+
+
+
+
+ports 8070, 8071 (admin)
+docker run --name nexus-iq-server --mount type=volume,src=sonatype-work,dst=/sonatype-work --network=my-network --ip 172.18.0.18 --hostname=nexus-iq-server -p 8070:8070 -p 8071:8071 -d sonatype/nexus-iq-server
+
+# volume backup if ran as suggested (update your artifacts location)
+sonatypeDir=/home/chunt/git/fortify/sonatype
+
+docker run --rm --volumes-from nexus-iq-server -v /home/chunt/git/fortify/presales-distro/sonatype:/tmp ubuntu tar -zcvf /tmp/sonatype-work.tar.gz /mnt/docker/volumes/sonatype-work
+
+# restore from backup (tar.gz)
+# start temp container
+docker volume create sonatype-work
+docker run -it --name nexus-iq-server2 -v /mnt/docker/volumes/sonatype-work -d ubuntu /bin/bash
+docker run --rm --volumes-from nexus-iq-server2 -v /home/chunt/git/fortify/presales-distro/sonatype:/tmp --mount type=volume,src=sonatype-work,dst=/sonatype-work sonatype/nexus-iq-server bash -c "cd /sonatype-work && tar -zxvf /tmp/sonatype-work.tar.gz --strip 1"
+docker stop nexus-iq-server2
+docker rm nexus-iq-server2
+*then docker run --name nexus-iq-server at top, make sure its good before continuing*
+*if no bueno, run 'docker volume rm sonatype-work' and start over*
+docker volume prune

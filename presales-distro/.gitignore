@@ -1,0 +1,4 @@
+*.tar.gz
+fortify.license
+Fortify*
+sca.options

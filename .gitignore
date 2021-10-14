@@ -1,0 +1,5 @@
+*.license
+*.tar.gz
+*.zip
+artifacts/*
+.env

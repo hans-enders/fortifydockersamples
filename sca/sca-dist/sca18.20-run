@@ -1,0 +1,28 @@
+FROM chunt/private:sca18.20-base
+LABEL maintainer="chunt" description="Fortify static code analyzer (SCA)"
+
+USER root
+
+# files to be passed as --build-arg's on build
+# fortify.license file
+ARG fortifyLicense
+# option file for SCA (@see product documentation or default @https://github.com/fortify)
+ARG scaOptions
+
+ARG scaVersion=Fortify_SCA_and_Apps_18.20_linux_x64.run
+
+ADD $fortifyLicense /tmp/
+ADD $scaOptions /tmp/
+
+# TODO: chunt: this needs an offline rules support as well
+RUN cd /tmp/ && \
+	chmod +x /tmp/$scaVersion && \
+	sleep 1 && \
+	./$scaVersion --mode unattended --optionfile /tmp/sca.options
+	
+RUN fortifyupdate && \
+	sourceanalyzer --version && \
+	rm /tmp/fortify.license && \
+	rm /tmp/$scaVersion
+
+CMD ["/bin/bash"]

@@ -1,0 +1,11 @@
+from chunt/private:jenkins_base
+
+user root
+
+run apt-get install -y curl apt-utils && \
+	curl -sSL https://get.docker.com/ | sh
+
+
+run usermod -aG docker jenkins
+
+user jenkins

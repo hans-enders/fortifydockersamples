@@ -1,0 +1,31 @@
+# jenkins_base image (see cloudscan-compose.yml for more complete solution and use this for testing or one-off setups)
+BUILD="docker build -t chunt/private:jenkins_base --no-cache ."
+RUN="docker run --name jenkins-test --network=my-network --ip 172.18.0.4 --hostname=ssc.fortify.com:172.18.0.3 -p 80:8080 -p 5000:5000 -p 4243:4243 -d chunt/private:jenkins_base"
+
+
+# make backup of jenkins volume (create tar.gz of jenkins docker volume)
+docker run --rm --volumes-from jenkins --mount type=volume,src=jenkins,dst=/jenkins --mount type=bind,src=/home/chunt/git/fortify/presales-distro/jenkins,dst=/opt ubuntu tar -zcvf /opt/jenkins_volume.tar.gz /jenkins
+
+# restore volume from backup (tar.gz)
+docker volume create jenkins
+docker run --rm --mount type=volume,src=jenkins,dst=/jenkins --mount type=bind,src=/home/chunt/git/fortify/presales-distro/jenkins,dst=/tmp ubuntu bash -c "cd /jenkins && tar -zxvf /tmp/jenkins_volume.tar.gz --strip 1"
+
+
+# testing using --mount over -v, slowly converting
+docker run --name jenkins --mount type=volume,src=jenkins,dst=/var/jenkins_home --network=my-network --ip 172.18.0.4 --hostname=ssc.fortify.com:172.18.0.3 --hostname=controller.fortify.com:172.18.0.6 -p 8080:8080 -p 50000:50000 -p 4243:4243 -d chunt/private:jenkins_base
+
+
+
+# docker in docker jenkins testing
+docker rm test
+docker rmi chunt/private:jenkins_docker
+
+docker-compose build jenkins
+
+docker run --name test --network=fortify -p 8081:8080 -p 4244:4243 -p 50001:50000 --mount type=volume,src=jenkins-docker,dst=/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock -d chunt/private:jenkins_docker
+
+docker run --rm --name test --network=fortify -p 8081:8080 -p 4244:4243 -p 50001:50000 -v /var/run/docker.sock:/var/run/docker.sock -d chunt/private:jenkins_docker
+
+
+# invoking docker plugin to create riches-wia18.20 container for scanning
+docker run -it -p 81:8080 --network=fortify --name riches-wia --mount type=volume,src=riches-wia,dst=/usr/local/tomcat/WI_Agent/log chunt/private:riches-wia18.20

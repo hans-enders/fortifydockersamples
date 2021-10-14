@@ -1,0 +1,22 @@
+datasourceProperties:
+  db.driver.class: org.mariadb.jdbc.Driver
+  db.username: ssc_db
+  db.password: F0rt1fy!
+  db.dialect: com.fortify.manager.util.hibernate.MySQLDialect
+  db.like.specialCharacters: '%_\\'
+  jdbc.url: 'jdbc:mysql://ssc-db:3306/ssc_db?sessionVariables=collation_connection=latin1_general_cs&rewriteBatchedStatements=true'
+
+# not working?
+#dbmigrationProperties: 
+#  migration.enabled: true
+
+seeds: 
+  - '/usr/local/tomcat/fortify/Fortify_Report_Seed_Bundle.zip'
+  - '/usr/local/tomcat/fortify/Fortify_Process_Seed_Bundle.zip'
+  - '/usr/local/tomcat/fortify/Fortify_PCI_Basic_Seed_Bundle.zip'
+  - '/usr/local/tomcat/fortify/Fortify_PCI_SSF_Basic_Seed_Bundle.zip'
+
+appProperties: 
+  host.validation: false
+  host.url: 'http://fortify/ssc'
+  searchIndex.location: '/usr/local/tomcat/fortify/ssc/ssc_search_index'

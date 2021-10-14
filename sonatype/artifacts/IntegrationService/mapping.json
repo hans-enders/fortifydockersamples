@@ -1,0 +1,8 @@
+[
+    {
+      "sonatypeProject": "riches",
+      "sonatypeProjectStage": "build",
+      "fortifyApplication": "riches",
+      "fortifyApplicationVersion": "1.0"
+    }
+]

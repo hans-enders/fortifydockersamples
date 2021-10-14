@@ -1,0 +1,2 @@
+BUILD="docker build -t chunt/private:sca18.20-base --no-cache --build-arg scaRun=Fortify_SCA_and_Apps_18.20_linux_x64.run --build-arg scaOptions=sca.options -f sca18.20-base ."
+RUN="this image is not runnable and used for software distribution"

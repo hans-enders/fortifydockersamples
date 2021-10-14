@@ -1,0 +1,15 @@
+BUILD="docker build --tag chunt/private:sensor18.20 --add-host controller.fortify.com:172.18.0.6 --no-cache ."
+RUN="docker run --name sensor1 --hostname=sca18.20_1 --network=my-network --ip 172.18.0.7 -d chunt/private:sensor18.20"
+
+
+# package
+cloudscan -experimental -url http://controller.fortify.com:8080/cloud-ctrl start -bt mvn -sp <path/filename.zip>
+
+# package, scan, upload results to ssc
+cloudscan -experimental -url http://controller.fortify.com:8080/cloud-ctrl start -upload -uptoken <cloudctrltoken> -bt mvn -versionid 5
+
+# package, scan, upload results to ssc, wait for fpr, write it to working directory
+cloudscan -experimental -url http://controller.fortify.com:8080/cloud-ctrl start -upload -uptoken <cloudctrltoken> -bt mvn -versionid 5 -block -f test.fpr
+
+
+RUN="docker run --name client --hostname="test-client" --network=my-network --add-host="controller.fortify.com:172.18.0.6" --mount type=bind,source=/home/chunt/code_samples/sca-maven/samples/EightBall,target=/project --mount type=bind,source=/opt/app/apache/maven/apache-maven-3.3.9,target=/tools -it --rm chunt/private:sca19.1.0_RC-scclient cloudscan -experimental -url http://controller.fortify.com:8080/cloud-ctrl start -bt mvn -sp "/project/eightball.zip""

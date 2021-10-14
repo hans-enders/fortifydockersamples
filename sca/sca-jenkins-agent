@@ -1,0 +1,42 @@
+FROM jenkins/jnlp-slave:3.27-1
+LABEL maintainer="chunt" description="Fortify static code analyzer (SCA) as a docker agent for jenkins"
+
+# files to be passed as --build-arg's on build
+# fortify.license file
+ARG fortifyLicense
+# SCA run file for linux 64 bit (@see $scaVersion)
+ARG scaRun
+# option file for SCA (@see product documentation or default @https://github.com/fortify)
+ARG scaOptions
+
+ARG FORTIFY_HOME=$HOME/.fortify
+
+ARG scaVersion=Fortify_SCA_and_Apps_18.20_linux_x64.run
+
+USER root
+
+#ADD artifacts/ /tmp/
+ADD $fortifyLicense /tmp/
+ADD $scaRun /tmp/
+ADD $scaOptions /tmp/
+
+ENV JAVA_OPTS="$JAVA_OPTS -Dfortify.home=$FORTIFY_HOME"
+
+RUN mkdir -p $HOME/.fortify $HOME/work && \
+	cd /tmp/ && \
+	chmod +x /tmp/$scaVersion && \
+	sleep 1 && \
+	./$scaVersion --mode unattended --optionfile /tmp/sca.options && \
+	cd /opt/app/ && \
+	chown -R jenkins:jenkins fortify $HOME/.fortify $HOME/work && \
+	rm -rf /tmp/*
+
+USER jenkins
+
+ENV PATH="${PATH}:/opt/app/fortify/bin"
+
+RUN fortifyupdate && \
+	sourceanalyzer -version
+
+
+ENTRYPOINT ["jenkins-slave"]

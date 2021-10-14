@@ -1,0 +1,21 @@
+(chunt 11-26-2018) this isnt fully configured yet to be run from this dockerfile
+
+TODO:
+  workspace
+    setup workspace with "good" project
+    add to artifacts folder for docker build
+  
+  update dockerfile to setup jenkins (first launch requires some configuration; initialAdminPassword, plugin setup, admin user creation)
+  
+  update dockerfile with workspace
+  
+  check ports for restful api invocation
+  
+  spin up sca docker container during build
+    add docker container support to jenkins (docker plugin should be installed already, verify)
+    make sca an agent that takes the commands/workspace/anything else it needs
+  
+  preconfigure ssc url (http://ssc.fortify.com/ssc) for fortify plugin
+    the fortify plugin is added in the docker build because it is not on the jenkins marketplace (chunt)
+  
+  investigate preconfigure for all plugins (yaml)

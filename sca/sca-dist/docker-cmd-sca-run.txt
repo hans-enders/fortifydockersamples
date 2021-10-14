@@ -1,0 +1,2 @@
+BUILD="docker build -t chunt/private:sca18.20 --no-cache --build-arg fortifyLicense=fortify.license -f sca18.20-run ."
+RUN="docker run --name sca18.20 -dit chunt/private:sca18.20"

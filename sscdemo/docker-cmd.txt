@@ -1,0 +1,5 @@
+docker run -m 6g -e SSC_MAX_MEM_MB=6144 --mount type=volume,src=sscdemo,dst=/fortify -p 8081:8080 --name sscdemo20.1 fortifydocker/sscdemo
+
+then copy fortify.license file to container
+
+docker cp fortify.license sscdemo20.1:/fortify

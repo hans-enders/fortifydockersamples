@@ -1,0 +1,9 @@
+FROM chunt/ssc-db:20.2.0-mysql_base
+LABEL maintainer="chunt"
+LABEL description="initialize a fresh ssc database"
+
+ARG sql
+
+COPY artifacts/create-tables.sql /docker-entrypoint-initdb.d/
+
+EXPOSE 3306

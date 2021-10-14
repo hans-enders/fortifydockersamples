@@ -1,0 +1,2 @@
+BUILD="docker build -t chunt/private:18.10_ssc_ui --no-cache -f fresh_install.Dockerfile ."
+RUN="docker run --name ssc.fortify.com-test --network=my-network --ip 172.18.0.3 -p 80:8080 -d chunt/private:18.10_ssc_ui"

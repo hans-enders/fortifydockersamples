@@ -1,0 +1,82 @@
+version: "3.2"
+services:
+  ssc_db:
+    build: 
+       context: ./ssc_db
+       dockerfile: Dockerfile
+       args:
+          - config=${sscdbConfigFile}
+    image: chunt/ssc-db:${TAG}
+    container_name: ${sscdbName}
+    ports:
+      - "3306:3306"
+    networks:
+       fortify:
+         ipv4_address: ${sscdbIP}
+         aliases:
+            - sscdb.fortify.com
+            - ssc-db
+    environment:
+      - MYSQL_DATABASE=${sscdb}
+      - MYSQL_USER=${sscdbUser}
+      - MYSQL_PASSWORD=${sscdbPw}
+      - MYSQL_ROOT_PASSWORD=${sscdbRootPw}
+    volumes: 
+      - type: "volume"
+        source: "${sscdbData}"
+        target: "/var/lib/mysql"
+  ssc:
+    build: 
+      context: ./ssc
+      dockerfile: Dockerfile
+    image: chunt/ssc:${TAG}
+    container_name: ${sscName}
+    depends_on:
+      - ssc_db
+    ports:
+      - "8082:8080"
+    extra_hosts:
+      - "sscdb.fortify.com:${sscdbIP}"
+      - "jenkins.fortify.com:${jenkinsIP}"
+      - "controller.fortify.com:${controllerIP}"
+    networks:
+       fortify:
+         ipv4_address: ${sscIP}
+         aliases: 
+            - ssc.fortify.com
+            - ssc-web
+  controller:
+    build:
+      context: ./cscontroller
+      dockerfile: Dockerfile
+    image: chunt/scancentral:${TAG}-controller
+    container_name: ${conName}
+    depends_on:
+     - ssc
+    ports:
+     - "8081:8080"
+    extra_hosts:
+     - "ssc.fortify.com:${sscIP}"
+     - "jenkins.fortify.com:${jenkinsIP}"
+    networks:
+      fortify:
+        ipv4_address: ${controllerIP}
+        aliases:
+          - controller.fortify.com
+          - controller
+
+
+networks:
+    fortify:
+        external:
+          name: ${networkName}
+volumes:
+    jenkins:
+        external:
+          name: ${jenkinsHome}
+    sca-jenkins-agent:
+        external:
+          name: ${scaJenkinsAgentHome}
+    ssc-db:
+        external:
+          name: ${sscdbVolume}

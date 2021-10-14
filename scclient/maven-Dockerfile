@@ -1,0 +1,15 @@
+FROM chunt/scancentral:20.2.0-client
+LABEL maintainer="chunt" description="base client" usage="requires bind mount: source code 1) source code project root (--mount type=bind,source=<fortify_sca_maven_plugin>/sca-maven/samples/EightBall,target=/project), which is also the working directory"
+
+ARG mavenTar=apache-maven-3.6.3-bin.tar.gz
+
+# download and install maven 3.6.3
+RUN mkdir -p /opt/app/maven && \
+	curl http://apache.mirrors.pair.com/maven/maven-3/3.6.3/binaries/$mavenTar -o $mavenTar && \
+	tar -zxvf $mavenTar -C /opt/app/maven/ && \
+	rm $mavenTar
+
+ENV PATH="$PATH:/opt/app/maven/apache-maven-3.6.3/bin"
+WORKDIR /project
+#CMD ["/bin/bash"]
+#ENTRYPOINT ["/bin/bash"]

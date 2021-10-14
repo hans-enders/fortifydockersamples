@@ -1,0 +1,23 @@
+# fortifydocker
+fortifydocker/fortify-ci-tools:latest
+fortifydocker/ssc-webapp:20.2.0.0149
+fortifydocker/audit-assistant-webapp:19.2.1.0023
+fortifydocker/audit-assistant-daemon:19.2.1.0023
+fortifydocker/audit-assistant-install:19.2.1.0023
+fortifydocker/audit-assistant-data:2019.12.0002
+# presales custom
+chunt/ssc-db:20.1.0
+chunt/ssc:20.1.0
+chunt/scancentral:20.1.0-controller
+chunt/scancentral:20.1.2-sensor
+chunt/sca:20.1.2-internal
+fortifydocker/riches:latest
+# Windows based images
+fortifydocker/scancentral-dast-globalservice:latest
+fortifydocker/scancentral-dast-api:latest
+fortifydocker/lim:latest
+fortifydocker/webinspect:latest
+# secondary
+jenkins/jenkins:lts
+owasp/dependency-track:latest
+sonatype/nexus-iq-server:latest

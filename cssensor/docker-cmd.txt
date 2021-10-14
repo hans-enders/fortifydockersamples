@@ -1,0 +1,10 @@
+BUILD="docker build --tag chunt/scancentral:20.1.2-sensor --add-host controller:172.18.0.6 --no-cache ."
+RUN1="docker run --name sensor1 --hostname sca1 --network=fortify --ip 172.18.0.7 --add-host="controller:172.18.0.6" -d chunt/scancentral:20.1.2-sensor --url http://controller:8080/scancentral-ctrl worker"
+RUN2="docker run --name sensor1 --hostname sca2 --network=fortify --ip 172.18.0.7 --add-host="controller:172.18.0.6" -d chunt/scancentral:20.1.2-sensor --url http://controller:8080/scancentral-ctrl worker"
+
+BUILD="docker build --tag chunt/private:sensor19.1.0_RC --add-host controller.fortify.com:172.18.0.6 --no-cache ."
+RUN="docker run --name sensor19.1 --hostname=sca19.1.0_RC_1 --network=fortify --ip 172.18.0.7 --add-host="controller.fortify.com:172.18.0.6" -d chunt/private:sensor19.1.0_RC-internal -url http://controller.fortify.com:8080/cloud-ctrl worker"
+
+# 18.20
+BUILD="docker build --tag chunt/private:sensor18.20 --add-host controller.fortify.com:172.18.0.6 --no-cache ."
+RUN="docker run --name sensor1 --hostname=sca18.20_1 --network=fortify --ip 172.18.0.7 -d chunt/private:sensor18.20 -url http://controller.fortify.com:8080/cloud-ctrl worker"
